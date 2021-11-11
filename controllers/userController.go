@@ -163,6 +163,43 @@ func UpdateUser() gin.HandlerFunc {
 	}
 }
 
+func DeleteUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		var user models.UserLogin
+
+		var foundUser models.User
+
+		if err := c.BindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		err := userCollection.FindOne(ctx, bson.M{"username": user.Username}).Decode(&foundUser)
+		defer cancel()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "username or password is incorrect"})
+			return
+		}
+
+		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
+		defer cancel()
+		if !passwordIsValid {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+			return
+		}
+
+		filter := bson.M{"username": foundUser.Username}
+		result, err := userCollection.DeleteOne(context.Background(), filter)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("delete count: ", result)
+		resp := Response{Status: "data deleted successfully", Data: result.DeletedCount}
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
 func HashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {

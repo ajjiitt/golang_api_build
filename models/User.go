@@ -17,6 +17,6 @@ type User struct {
 }
 
 type UserLogin struct {
-	Username    *string            `json:"username" validate:"required,min=4",max=100`
+	Username    *string            `json:"username"`
 	Password    *string            `json:"password" validate:"required,min=6"`
 }
