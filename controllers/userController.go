@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"golang_api_build/database"
 	"golang_api_build/models"
 	"log"
@@ -17,7 +18,7 @@ import (
 )
 
 type Response struct {
-	Status string        `json:"status"`
+	Status string      `json:"status"`
 	Data   interface{} `json:"data"`
 }
 
@@ -68,12 +69,12 @@ func CreateUser() gin.HandlerFunc {
 		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking for the username"})
-			return 
+			return
 		}
 
 		if count > 0 {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "this username already exists"})
-			return 
+			return
 		}
 
 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -123,6 +124,42 @@ func Login() gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, foundUser)
+	}
+}
+
+func UpdateUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		username := c.Param("username")
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		var user models.User
+		var foundUser models.User
+
+		if err := c.BindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		err := userCollection.FindOne(ctx, bson.M{"username": username}).Decode(&foundUser)
+		defer cancel()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "username or password is incorrect"})
+			return
+		}
+		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
+		defer cancel()
+		if !passwordIsValid {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+			return
+		}
+		filter := bson.M{"username": username}
+		update := bson.M{"$set": bson.M{"name": user.Name, "description": user.Description, "address": user.Address, "dob": user.DOB}}
+		result, err := userCollection.UpdateOne(context.Background(), filter, update)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("modified count: ", result.ModifiedCount)
+		resp := Response{Status: "success", Data: result.ModifiedCount}
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
