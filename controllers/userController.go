@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,26 +18,38 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type Userdata struct {
+	Usr models.User `json:"user"`
+	Token string `json:"token"`
+}
+
 type Response struct {
 	Status string      `json:"status"`
 	Data   interface{} `json:"data"`
 }
 
+type Claims struct {
+	Username *string `json:"username"`
+	jwt.StandardClaims
+}
+
+var jwtKey = []byte("secret_key")
 var userCollection *mongo.Collection = database.OpenCollection(database.Client, "user")
 var validate = validator.New()
 
 func GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Param("user")
+		userD := c.Param("user")
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		var user models.User
-		err := userCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
+		err := userCollection.FindOne(ctx, bson.M{"username": userD}).Decode(&user)
 		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, user)
+		resp := Response{Status: "success", Data: user}
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -120,10 +133,25 @@ func Login() gin.HandlerFunc {
 		err = userCollection.FindOne(ctx, bson.M{"username": foundUser.Username}).Decode(&foundUser)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error2": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, foundUser)
+
+		expirationTime := time.Now().Add(time.Minute * 5)
+		claims := &Claims{
+			Username: foundUser.Username,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: expirationTime.Unix(),
+			},
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString(jwtKey)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		resp := Response{Status: "success", Data: Userdata{Token:tokenString, Usr:foundUser}}
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
@@ -158,7 +186,13 @@ func UpdateUser() gin.HandlerFunc {
 			log.Fatal(err)
 		}
 		fmt.Println("modified count: ", result.ModifiedCount)
-		resp := Response{Status: "success", Data: result.ModifiedCount}
+		err = userCollection.FindOne(ctx, bson.M{"username": foundUser.Username}).Decode(&user)
+		defer cancel()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		resp := Response{Status: "success", Data: user}
 		c.JSON(http.StatusOK, resp)
 	}
 }

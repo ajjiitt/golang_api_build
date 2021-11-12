@@ -1,0 +1,196 @@
+{
+	"info": {
+		"_postman_id": "548e49de-454a-40f3-8d72-a71e33aa8255",
+		"name": "golang_api_build",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create User",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"ajit\",\r\n    \"name\":\"ajit d\",\r\n    \"dob\":\"12-10-2001\",\r\n    \"address\":\"mumbai,india\",\r\n    \"password\":\"xyz123123\",\r\n    \"description\":\"hello world!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base}}user",
+					"host": [
+						"{{base}}user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"ajit\",\r\n    \"password\":\"xyz123123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base}}user",
+					"host": [
+						"{{base}}user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "token ",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFqaXQiLCJleHAiOjE2MzY3MDEzNDV9.P1m1HJdGyf580m_boLOugGI-CWz1Ea_O9NdBjul-hCA",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"ajit\",\r\n    \"name\":\"ajit dakre1\",\r\n    \"dob\":\"12-10-2001\",\r\n    \"address\":\"mumbai,india\",\r\n    \"password\":\"xyz123123\",\r\n    \"description\":\"hello world!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base}}update/ajit",
+					"host": [
+						"{{base}}update"
+					],
+					"path": [
+						"ajit"
+					]
+				},
+				"description": "Insert new token from login, in token in header of update user"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFqaXQiLCJleHAiOjE2MzY3MDEzNDV9.P1m1HJdGyf580m_boLOugGI-CWz1Ea_O9NdBjul-hCA",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"ajit\",\r\n    \"password\":\"xyz123123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base}}delete",
+					"host": [
+						"{{base}}delete"
+					]
+				},
+				"description": "Insert new token from login, in token in header of delete user"
+			},
+			"response": []
+		},
+		{
+			"name": "Get User",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFqaXQiLCJleHAiOjE2MzY3MDEzNDV9.P1m1HJdGyf580m_boLOugGI-CWz1Ea_O9NdBjul-hCA",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base}}user/ajit123",
+					"host": [
+						"{{base}}user"
+					],
+					"path": [
+						"ajit123"
+					]
+				},
+				"description": "Insert new token from login, in token in header of get user"
+			},
+			"response": []
+		},
+		{
+			"name": "New Request Copy 4",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"ajit\",\r\n    \"name\":\"ajit d\",\r\n    \"dob\":\"12-10-2001\",\r\n    \"address\":\"mumbai,india\",\r\n    \"password\":\"xyz123123\",\r\n    \"description\":\"hello world!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:9000/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"user"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base",
+			"value": "http://localhost:9000/"
+		}
+	]
+}
