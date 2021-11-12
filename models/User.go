@@ -13,10 +13,12 @@ type User struct {
 	Address     *string            `json:"address" validate:"required,max=150"`
 	Password    *string            `json:"password" validate:"required,min=6"`
 	Description *string            `json:"description" validate:"required"`
+	Longitude   *string            `json:"long"`
+	Latitude    *string            `json:"lat"`
 	Created_at  time.Time          `json:"created_at"`
 }
 
 type UserLogin struct {
-	Username    *string            `json:"username"`
-	Password    *string            `json:"password" validate:"required,min=6"`
+	Username *string `json:"username"`
+	Password *string `json:"password" validate:"required,min=6"`
 }

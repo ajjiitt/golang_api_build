@@ -234,6 +234,36 @@ func DeleteUser() gin.HandlerFunc {
 	}
 }
 
+
+func GetUsers() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		resp := Response{Status: "success", Data: getAllUsers()}
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
+
+func getAllUsers() []models.User{
+	cur, err := userCollection.Find(context.Background(), bson.D{{}})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var users []models.User
+
+	for cur.Next(context.Background()) {
+		var user models.User
+		err := cur.Decode(&user)
+		if err != nil {
+			log.Fatal(err)
+		}
+		users = append(users, user)
+	}
+
+	defer cur.Close(context.Background())
+	return users
+}
+
 func HashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
