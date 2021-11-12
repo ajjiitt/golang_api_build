@@ -8,9 +8,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
-
+// jwtkey - for token hashing
 var jwtKey = []byte("secret_key")
-
+// to autheticate token sent via frontend
 func Authuser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientToken := c.Request.Header.Get("token")
@@ -24,7 +24,7 @@ func Authuser() gin.HandlerFunc {
 		fmt.Println("Middleware ran")
 	}
 }
-
+// function to validate token
 func validateToken(c *gin.Context, tokenStr string) {
 	claims := &controller.Claims{}
 

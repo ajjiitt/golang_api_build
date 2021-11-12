@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 )
-
+// function to connect to MongoDB
 func DBinstance() *mongo.Client {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -36,7 +36,7 @@ func DBinstance() *mongo.Client {
 }
 
 var Client *mongo.Client = DBinstance()
-
+// selecting passed collection from database
 func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
 	var collection *mongo.Collection = client.Database("cluster0").Collection(collectionName)
 	return collection
