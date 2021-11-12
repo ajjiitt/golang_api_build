@@ -211,7 +211,7 @@ func UpdateUser() gin.HandlerFunc {
 		c.JSON(http.StatusOK, resp)
 	}
 }
-// conteroller for deleting user
+// controller for deleting user
 func DeleteUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
