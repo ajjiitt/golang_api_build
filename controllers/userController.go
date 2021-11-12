@@ -142,7 +142,7 @@ func UpdateUser() gin.HandlerFunc {
 		err := userCollection.FindOne(ctx, bson.M{"username": username}).Decode(&foundUser)
 		defer cancel()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "username or password is incorrect"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
 			return
 		}
 		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
