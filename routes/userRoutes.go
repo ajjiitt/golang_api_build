@@ -15,4 +15,5 @@ func UserRoutes(incomingRoutes *gin.Engine) {
 	incomingRoutes.GET("/users", controller.GetUsers())
 	incomingRoutes.POST("/update/:username", controller.UpdateUser())
 	incomingRoutes.POST("/delete", controller.DeleteUser())
+	incomingRoutes.POST("/filterbycoordinates",controller.FilterUserViaLongLat())
 }

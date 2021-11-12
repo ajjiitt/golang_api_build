@@ -7,18 +7,23 @@ import (
 
 type User struct {
 	ID          primitive.ObjectID `bson:"_id"`
-	Username    *string            `json:"username" validate:"required,min=4",max=100`
-	Name        *string            `json:"name" validate:"required,min=2,max=100"`
+	Username    string            `json:"username" validate:"required,min=4",max=100`
+	Name        string            `json:"name" validate:"required,min=2,max=100"`
 	DOB         string             `json:"dob" validate:"required"`
-	Address     *string            `json:"address" validate:"required,max=150"`
-	Password    *string            `json:"password" validate:"required,min=6"`
-	Description *string            `json:"description" validate:"required"`
-	Longitude   *string            `json:"long"`
-	Latitude    *string            `json:"lat"`
+	Address     string            `json:"address" validate:"required,max=150"`
+	Password    string            `json:"password" validate:"required,min=6"`
+	Description string            `json:"description" validate:"required"`
+	Longitude   string            `json:"long"`
+	Latitude    string            `json:"lat"`
 	Created_at  time.Time          `json:"created_at"`
 }
 
 type UserLogin struct {
-	Username *string `json:"username"`
-	Password *string `json:"password" validate:"required,min=6"`
+	Username string `json:"username"`
+	Password string `json:"password" validate:"required,min=6"`
+}
+
+type Userdata struct {
+	Usr   User `json:"user"`
+	Token string      `json:"token"`
 }

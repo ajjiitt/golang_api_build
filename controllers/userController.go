@@ -7,6 +7,7 @@ import (
 	"golang_api_build/models"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -18,10 +19,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Userdata struct {
-	Usr models.User `json:"user"`
-	Token string `json:"token"`
-}
 
 type Response struct {
 	Status string      `json:"status"`
@@ -31,6 +28,10 @@ type Response struct {
 type Claims struct {
 	Username *string `json:"username"`
 	jwt.StandardClaims
+}
+type LongLat struct {
+	Longitude string `json:"longitude"`
+	Latitude  string `json:"latitude"`
 }
 
 var jwtKey = []byte("secret_key")
@@ -75,8 +76,8 @@ func CreateUser() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking for the username"})
 			return
 		}
-		password := HashPassword(*user.Password)
-		user.Password = &password
+		password := HashPassword(user.Password)
+		user.Password = password
 		count, err = userCollection.CountDocuments(ctx, bson.M{"username": user.Username})
 		defer cancel()
 		if err != nil {
@@ -120,14 +121,14 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
-		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
+		passwordIsValid, msg := VerifyPassword(user.Password, foundUser.Password)
 		defer cancel()
 		if !passwordIsValid {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 			return
 		}
 
-		if foundUser.Username == nil {
+		if foundUser.Username == "" {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
 		}
 		err = userCollection.FindOne(ctx, bson.M{"username": foundUser.Username}).Decode(&foundUser)
@@ -137,9 +138,9 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
-		expirationTime := time.Now().Add(time.Minute * 5)
+		expirationTime := time.Now().Add(time.Minute * 5000)
 		claims := &Claims{
-			Username: foundUser.Username,
+			Username: &foundUser.Username,
 			StandardClaims: jwt.StandardClaims{
 				ExpiresAt: expirationTime.Unix(),
 			},
@@ -150,7 +151,7 @@ func Login() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		resp := Response{Status: "success", Data: Userdata{Token:tokenString, Usr:foundUser}}
+		resp := Response{Status: "success", Data: models.Userdata{Token: tokenString, Usr: foundUser}}
 		c.JSON(http.StatusOK, resp)
 	}
 }
@@ -173,7 +174,7 @@ func UpdateUser() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
 			return
 		}
-		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
+		passwordIsValid, msg := VerifyPassword(user.Password, foundUser.Password)
 		defer cancel()
 		if !passwordIsValid {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
@@ -215,7 +216,7 @@ func DeleteUser() gin.HandlerFunc {
 			return
 		}
 
-		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
+		passwordIsValid, msg := VerifyPassword(user.Password, foundUser.Password)
 		defer cancel()
 		if !passwordIsValid {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
@@ -234,7 +235,6 @@ func DeleteUser() gin.HandlerFunc {
 	}
 }
 
-
 func GetUsers() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		resp := Response{Status: "success", Data: getAllUsers()}
@@ -242,8 +242,39 @@ func GetUsers() gin.HandlerFunc {
 	}
 }
 
+func FilterUserViaLongLat() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var usr []models.User
+		user := getAllUsers()
+		var coordinate LongLat
+		if err := c.BindJSON(&coordinate); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.Abort()
+		}
+		longD, _ := strconv.ParseFloat(coordinate.Longitude, 32)
+		latD, _ := strconv.ParseFloat(coordinate.Latitude, 32)
+		longDT := int(longD)
+		latDT := int(latD)
+		for i := range user {
+			lat, _ := strconv.ParseFloat(user[i].Latitude,32)
+			long, _ := (strconv.ParseFloat(user[i].Longitude, 32))
+			longT := int(long)
+			latT := int(lat)
+			if longDT == longT && latDT == latT {
+				usr = append(usr, user[i])
+			}
+		}
+		if len(usr)==0{
+			resp := Response{Status: "No user found", Data: []int{}}
+			c.JSON(http.StatusOK, resp)
+			return 
+		}
+		resp := Response{Status: "success", Data: usr}
+		c.JSON(http.StatusOK, resp)
+	}
+}
 
-func getAllUsers() []models.User{
+func getAllUsers() []models.User {
 	cur, err := userCollection.Find(context.Background(), bson.D{{}})
 	if err != nil {
 		log.Fatal(err)
